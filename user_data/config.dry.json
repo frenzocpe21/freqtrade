@@ -125,7 +125,8 @@
 
     "bot_name": "ForeTrade-dry",
     "initial_state": "running",
-    "force_entry_enable": false,
+    // เปิดปุ่ม Force entry ใน FreqUI (dry-run) — ไว้ทดสอบว่าระบบเข้า-ออก-คิด PnL ครบ
+    "force_entry_enable": true,
     "internals": {
         "process_throttle_secs": 5
     }
