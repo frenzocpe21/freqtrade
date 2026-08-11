@@ -1,0 +1,190 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>ForeTrade Dashboard</title>
+<style>
+  :root { color-scheme: dark; }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; font-family: "Segoe UI", Tahoma, sans-serif;
+    background: #0e1116; color: #e6e6e6;
+  }
+  header {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 18px; background: #161b22; border-bottom: 1px solid #262c36;
+  }
+  header h1 { font-size: 18px; margin: 0; }
+  .dot { width: 10px; height: 10px; border-radius: 50%; background: #666; }
+  .dot.on { background: #26a69a; } .dot.off { background: #ef5350; }
+  main { padding: 18px; max-width: 1100px; margin: 0 auto; }
+  .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 18px; }
+  .card { background: #161b22; border: 1px solid #262c36; border-radius: 10px; padding: 14px; }
+  .card .label { font-size: 12px; color: #8b949e; }
+  .card .value { font-size: 22px; font-weight: 600; margin-top: 4px; }
+  .pos { color: #26a69a; } .neg { color: #ef5350; }
+  section { background: #161b22; border: 1px solid #262c36; border-radius: 10px; padding: 14px; margin-bottom: 18px; }
+  section h2 { font-size: 15px; margin: 0 0 10px; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid #262c36; }
+  th { color: #8b949e; font-weight: 500; }
+  .row { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 10px; }
+  input, select, button {
+    background: #0e1116; color: #e6e6e6; border: 1px solid #30363d;
+    border-radius: 6px; padding: 8px 10px; font-size: 14px;
+  }
+  button { background: #238636; border-color: #238636; cursor: pointer; }
+  button:hover { background: #2ea043; }
+  button:disabled { opacity: .5; cursor: default; }
+  pre { white-space: pre-wrap; word-wrap: break-word; background: #0e1116; border: 1px solid #262c36;
+        border-radius: 8px; padding: 12px; font-size: 13px; line-height: 1.5; margin: 0; min-height: 40px; }
+  .muted { color: #8b949e; font-size: 12px; }
+  a { color: #58a6ff; }
+</style>
+</head>
+<body>
+<header>
+  <div id="dot" class="dot"></div>
+  <h1>ForeTrade Dashboard</h1>
+  <span id="botstate" class="muted"></span>
+  <span style="margin-left:auto" class="muted">FreqUI เต็ม: <a href="http://127.0.0.1:8080" target="_blank">:8080</a></span>
+</header>
+
+<main>
+  <div class="cards">
+    <div class="card"><div class="label">ออเดอร์ที่เปิดอยู่</div><div id="c_open" class="value">–</div></div>
+    <div class="card"><div class="label">กำไรที่ปิดแล้ว</div><div id="c_closed" class="value">–</div></div>
+    <div class="card"><div class="label">กำไรรวม (รวมที่ยังเปิด)</div><div id="c_all" class="value">–</div></div>
+    <div class="card"><div class="label">จำนวนไม้ทั้งหมด</div><div id="c_count" class="value">–</div></div>
+  </div>
+
+  <section>
+    <h2>ออเดอร์ที่เปิดอยู่</h2>
+    <div style="overflow-x:auto">
+      <table>
+        <thead><tr>
+          <th>ID</th><th>คู่</th><th>ทิศ</th><th>ราคาเข้า</th><th>ราคาปัจจุบัน</th>
+          <th>กำไร %</th><th>เข้าเมื่อ</th><th>AI</th>
+        </tr></thead>
+        <tbody id="trades"><tr><td colspan="8" class="muted">กำลังโหลด...</td></tr></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section>
+    <h2>วิเคราะห์คู่เทรดด้วย AI</h2>
+    <div class="row">
+      <input id="ai_symbol" placeholder="เช่น BTC/USDT:USDT" value="BTC/USDT:USDT" size="22" />
+      <select id="ai_provider"><option value="">provider เริ่มต้น</option><option>claude</option><option>openai</option><option>gemini</option></select>
+      <select id="ai_lang"><option value="th">ไทย</option><option value="en">English</option></select>
+      <button id="ai_pair_btn" onclick="analyzePair()">วิเคราะห์คู่นี้</button>
+    </div>
+    <pre id="ai_pair_out" class="muted">ผลวิเคราะห์จะแสดงที่นี่ (ต้องตั้งคีย์ API ของ provider ก่อน)</pre>
+  </section>
+
+  <section>
+    <h2>วิเคราะห์ทรานแซกชันด้วย AI</h2>
+    <div class="row">
+      <input id="ai_tradeid" placeholder="trade id" value="1" size="8" />
+      <select id="ai_provider2"><option value="">provider เริ่มต้น</option><option>claude</option><option>openai</option><option>gemini</option></select>
+      <select id="ai_lang2"><option value="th">ไทย</option><option value="en">English</option></select>
+      <button id="ai_trade_btn" onclick="analyzeTrade()">วิเคราะห์ไม้นี้</button>
+    </div>
+    <pre id="ai_trade_out" class="muted">ผลวิเคราะห์จะแสดงที่นี่</pre>
+  </section>
+</main>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const fmt = (n, d=2) => (n === null || n === undefined || isNaN(n)) ? "–" : Number(n).toFixed(d);
+const cls = (n) => (Number(n) > 0 ? "pos" : Number(n) < 0 ? "neg" : "");
+
+async function j(url) {
+  const r = await fetch(url);
+  if (!r.ok) throw new Error("HTTP " + r.status);
+  return r.json();
+}
+
+async function refresh() {
+  // สถานะบอท
+  try {
+    const p = await j("/api/ping");
+    $("dot").className = "dot on";
+    $("botstate").textContent = "เชื่อมต่อแล้ว";
+  } catch (e) {
+    $("dot").className = "dot off";
+    $("botstate").textContent = "ต่อ Freqtrade ไม่ได้ (บอทรันอยู่ไหม? เปิด :8080)";
+    return;
+  }
+
+  // สรุปกำไร
+  try {
+    const pr = await j("/api/profit");
+    const cur = pr.best_pair_profit_ratio !== undefined ? "" : "";
+    $("c_closed").textContent = fmt(pr.profit_closed_percent_sum ?? pr.profit_closed_percent, 2) + "%";
+    $("c_closed").className = "value " + cls(pr.profit_closed_percent_sum ?? pr.profit_closed_percent);
+    $("c_all").textContent = fmt(pr.profit_all_percent_sum ?? pr.profit_all_percent, 2) + "%";
+    $("c_all").className = "value " + cls(pr.profit_all_percent_sum ?? pr.profit_all_percent);
+    $("c_count").textContent = (pr.trade_count ?? "–");
+  } catch (e) {}
+
+  // ออเดอร์เปิด
+  try {
+    const st = await j("/api/status");
+    const list = Array.isArray(st) ? st : (st.trades || []);
+    $("c_open").textContent = list.length;
+    if (!list.length) {
+      $("trades").innerHTML = '<tr><td colspan="8" class="muted">ยังไม่มีออเดอร์เปิด (บอทกำลังรอสัญญาณ)</td></tr>';
+    } else {
+      $("trades").innerHTML = list.map(t => {
+        const pct = t.profit_pct ?? (t.profit_ratio != null ? t.profit_ratio * 100 : null);
+        const dir = t.is_short ? "Short" : "Long";
+        const id = t.trade_id ?? t.trade_id;
+        return `<tr>
+          <td>${id}</td><td>${t.pair}</td><td>${dir}</td>
+          <td>${fmt(t.open_rate, 6)}</td><td>${fmt(t.current_rate, 6)}</td>
+          <td class="${cls(pct)}">${fmt(pct, 2)}%</td>
+          <td class="muted">${(t.open_date || "").replace("T"," ").slice(0,16)}</td>
+          <td><button onclick="analyzeTradeId(${id})">AI</button></td>
+        </tr>`;
+      }).join("");
+    }
+  } catch (e) {}
+}
+
+async function analyzePair() {
+  const sym = encodeURIComponent($("ai_symbol").value.trim());
+  const prov = $("ai_provider").value, lang = $("ai_lang").value;
+  const out = $("ai_pair_out");
+  $("ai_pair_btn").disabled = true; out.className = ""; out.textContent = "กำลังวิเคราะห์... (อาจใช้เวลาสักครู่)";
+  try {
+    const r = await j(`/api/ai/pair?symbol=${sym}&provider=${prov}&lang=${lang}`);
+    out.textContent = r.text || "(ไม่มีผลลัพธ์)";
+  } catch (e) { out.textContent = "ผิดพลาด: " + e.message; }
+  $("ai_pair_btn").disabled = false;
+}
+
+async function analyzeTrade() {
+  const id = $("ai_tradeid").value.trim();
+  const prov = $("ai_provider2").value, lang = $("ai_lang2").value;
+  const out = $("ai_trade_out");
+  $("ai_trade_btn").disabled = true; out.className = ""; out.textContent = "กำลังวิเคราะห์...";
+  try {
+    const r = await j(`/api/ai/trade?trade_id=${id}&provider=${prov}&lang=${lang}`);
+    out.textContent = r.text || "(ไม่มีผลลัพธ์)";
+  } catch (e) { out.textContent = "ผิดพลาด: " + e.message; }
+  $("ai_trade_btn").disabled = false;
+}
+
+function analyzeTradeId(id) {
+  $("ai_tradeid").value = id;
+  document.getElementById("ai_trade_out").scrollIntoView({behavior:"smooth"});
+  analyzeTrade();
+}
+
+refresh();
+setInterval(refresh, 5000);
+</script>
+</body>
+</html>

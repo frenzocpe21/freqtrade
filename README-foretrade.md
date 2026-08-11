@@ -121,6 +121,34 @@ python -m foretrade_ai.cli analyze-pair BTC/USDT --lang th   # ไทย (ค่
 
 ---
 
+## 4.5) แดชบอร์ดภาษาไทยของเราเอง (foretrade_web)
+
+หน้าเว็บของเราเอง (แยกจาก FreqUI) แสดงสถานะ/ออเดอร์/PnL เป็นภาษาไทย + มีปุ่มเรียก AI วิเคราะห์
+
+รันบน host (ต่อไปที่ API ของบอทที่ `127.0.0.1:8080` — ใช้ได้ทั้งบอทใน Docker หรือ native):
+
+```bat
+foretrade_web.bat
+```
+เปิด **http://127.0.0.1:8099** — ต้องมี Python + `fastapi`/`uvicorn` + SDK ของ AI บน host
+(ง่ายสุดคือรัน `foretrade_install.bat` ก่อน) และตั้งคีย์ AI ถ้าจะใช้ปุ่มวิเคราะห์
+
+## 4.6) นำเข้ากลยุทธ์จากแหล่งรวม + เทียบผล (backtest หลายกลยุทธ์)
+
+อยากลองกลยุทธ์อื่นๆ มาเทียบกับ MomentumBreakout:
+
+```
+foretrade_docker.bat  ->  8) list     ดูชื่อคลาสกลยุทธ์ที่มี
+                          9) import   วาง URL ไฟล์ .py (เช่นจาก GitHub raw) โหลดเข้า user_data\strategies\
+                         10) compare  ใส่ชื่อกลยุทธ์หลายตัว (เว้นวรรค) แล้ว backtest เทียบกัน
+```
+
+**แหล่งกลยุทธ์แนะนำ:** repo ทางการของชุมชน [freqtrade/freqtrade-strategies](https://github.com/freqtrade/freqtrade-strategies)
+— เปิดไฟล์ .py ที่ต้องการ กดปุ่ม **Raw** ก๊อป URL มาใส่ในคำสั่ง import
+
+> ก่อน compare ต้องมีข้อมูลย้อนหลังก่อน (เมนู `2) data`)
+> compare จะออกตารางเทียบ win rate / PnL / drawdown ของแต่ละกลยุทธ์ในครั้งเดียว
+
 ## 5) แจ้งเตือนเข้า LINE (ฟรี, ไม่บังคับ)
 
 LINE Notify ปิดบริการแล้ว — ใช้ **LINE Messaging API** (Official Account ฟรี) ผ่าน relay ของเรา
@@ -166,6 +194,7 @@ user_data/config.live.json.example           ตัวอย่าง config โ
 foretrade_scripts/*.ps1                       สคริปต์ backtest / run_dry / run_live
 foretrade_ai/                                 AI Analyst (provider: claude/openai/gemini)
 foretrade_line/                               relay แจ้งเตือนไป LINE
+foretrade_web/ + foretrade_web.bat            แดชบอร์ดภาษาไทย + ปุ่ม AI (คุยกับ REST API)
 ```
 
 ## Git (fork ของคุณเอง)

@@ -5,6 +5,7 @@ REM  Requires Docker Desktop / Docker Engine to be running.
 REM
 REM  Double-click for a looping menu, or run from cmd:
 REM    foretrade_docker.bat up | logs | down | data | backtest | ui | test
+REM                       | list | import | compare
 REM ============================================================
 setlocal enabledelayedexpansion
 cd /d "%~dp0"
@@ -43,18 +44,24 @@ echo   4^) up        Run dry-run in background + FreqUI
 echo   5^) logs      Follow live logs ^(Ctrl+C to return^)
 echo   6^) down      Stop the bot
 echo   7^) test      Run once in foreground to SHOW ERRORS
+echo   8^) list      List available strategies
+echo   9^) import    Download a strategy .py from a URL
+echo  10^) compare   Backtest several strategies side by side
 echo   0^) exit
 echo ===========================================
 set "SEL="
-set /p "SEL=Type 0-7 and press Enter: "
+set /p "SEL=Type 0-10 and press Enter: "
 if "%SEL%"=="0" goto :eof
-if "%SEL%"=="1" ( call :dispatch ui       & goto :menu )
-if "%SEL%"=="2" ( call :dispatch data     & goto :menu )
-if "%SEL%"=="3" ( call :dispatch backtest & goto :menu )
-if "%SEL%"=="4" ( call :dispatch up       & goto :menu )
-if "%SEL%"=="5" ( call :dispatch logs     & goto :menu )
-if "%SEL%"=="6" ( call :dispatch down     & goto :menu )
-if "%SEL%"=="7" ( call :dispatch test     & goto :menu )
+if "%SEL%"=="1"  ( call :dispatch ui       & goto :menu )
+if "%SEL%"=="2"  ( call :dispatch data     & goto :menu )
+if "%SEL%"=="3"  ( call :dispatch backtest & goto :menu )
+if "%SEL%"=="4"  ( call :dispatch up       & goto :menu )
+if "%SEL%"=="5"  ( call :dispatch logs     & goto :menu )
+if "%SEL%"=="6"  ( call :dispatch down     & goto :menu )
+if "%SEL%"=="7"  ( call :dispatch test     & goto :menu )
+if "%SEL%"=="8"  ( call :dispatch list     & goto :menu )
+if "%SEL%"=="9"  ( call :dispatch import   & goto :menu )
+if "%SEL%"=="10" ( call :dispatch compare  & goto :menu )
 echo Invalid choice: %SEL%
 goto :menu
 
@@ -68,7 +75,10 @@ if /i "%CMD%"=="data"     goto :do_data
 if /i "%CMD%"=="backtest" goto :do_backtest
 if /i "%CMD%"=="ui"       goto :do_ui
 if /i "%CMD%"=="test"     goto :do_test
-echo Unknown command "%CMD%" - choose: up^|logs^|down^|data^|backtest^|ui^|test
+if /i "%CMD%"=="list"     goto :do_list
+if /i "%CMD%"=="import"   goto :do_import
+if /i "%CMD%"=="compare"  goto :do_compare
+echo Unknown command "%CMD%" - choose: up^|logs^|down^|data^|backtest^|ui^|test^|list^|import^|compare
 exit /b 1
 
 :do_up
@@ -107,4 +117,37 @@ exit /b 0
 :do_test
 echo -^> Foreground run (no restart) - watch for errors, Ctrl+C to stop
 %RUN% trade %CFG% --config /freqtrade/user_data/config.docker-override.json %STRAT%
+exit /b 0
+
+:do_list
+echo -^> Available strategies (use these names in 'compare'):
+%RUN% list-strategies %CFG%
+exit /b 0
+
+:do_import
+echo -^> Download a strategy .py into user_data\strategies\
+echo    Paste a raw URL, e.g. https://raw.githubusercontent.com/user/repo/main/MyStrat.py
+set "URL="
+set /p "URL=URL: "
+if "%URL%"=="" ( echo Cancelled. & exit /b 1 )
+REM GitHub 'blob' URL -> raw URL
+echo %URL% | findstr /i "github.com" >nul && echo %URL% | findstr /i "/blob/" >nul && (
+  set "URL=%URL:github.com=raw.githubusercontent.com%"
+  set "URL=%URL:/blob/=/%"
+)
+for %%F in ("%URL%") do set "FNAME=%%~nxF"
+if "%FNAME%"=="" set "FNAME=imported_strategy.py"
+echo -^> Saving as user_data\strategies\%FNAME%
+curl -L -o "user_data\strategies\%FNAME%" "%URL%"
+if errorlevel 1 ( echo [ERROR] Download failed. & exit /b 1 )
+echo Done. Run 'list' to see its class name, then 'compare'.
+exit /b 0
+
+:do_compare
+echo -^> Backtest several strategies side by side (needs data - run 'data' first)
+echo    Enter CLASS names separated by spaces (see 'list'), e.g. MomentumBreakout OtherStrat
+set "NAMES="
+set /p "NAMES=Strategies: "
+if "%NAMES%"=="" ( echo Cancelled. & exit /b 1 )
+%RUN% backtesting %CFG% --strategy-list %NAMES% --timerange=-90 --timeframe 5m
 exit /b 0
