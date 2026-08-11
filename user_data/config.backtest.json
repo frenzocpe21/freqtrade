@@ -1,0 +1,38 @@
+{
+    // ForeTrade — override สำหรับ download-data / backtesting / compare
+    //
+    // ทำไมต้องมีไฟล์นี้:
+    //   config.dry.json ใช้ VolumePairList (เลือกคู่จากวอลุ่มสดตอนรัน) ซึ่งใช้กับ
+    //   dry-run/live ได้ แต่ "ใช้กับ backtest/download ไม่ได้" เพราะสองคำสั่งนี้
+    //   ต้องรู้รายชื่อคู่ล่วงหน้า → เลยสลับเป็น StaticPairList (คู่ตายตัว) ที่นี่
+    //
+    // ใช้คู่ต่อกับ config.dry.json เสมอ เช่น:
+    //   download-data  --config config.dry.json --config config.backtest.json ...
+    //   backtesting    --config config.dry.json --config config.backtest.json ...
+    //
+    // อยากเทสคู่ไหนก็แก้ pair_whitelist ด้านล่างได้เลย (รูปแบบ futures = BASE/USDT:USDT)
+
+    "pairlists": [
+        { "method": "StaticPairList" }
+    ],
+
+    "exchange": {
+        "pair_whitelist": [
+            "BTC/USDT:USDT",
+            "ETH/USDT:USDT",
+            "SOL/USDT:USDT",
+            "XRP/USDT:USDT",
+            "DOGE/USDT:USDT",
+            "ADA/USDT:USDT",
+            "AVAX/USDT:USDT",
+            "LINK/USDT:USDT",
+            "LTC/USDT:USDT",
+            "DOT/USDT:USDT",
+            "NEAR/USDT:USDT",
+            "ATOM/USDT:USDT",
+            "APT/USDT:USDT",
+            "ARB/USDT:USDT",
+            "OP/USDT:USDT"
+        ]
+    }
+}

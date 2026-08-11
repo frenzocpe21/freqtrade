@@ -1,0 +1,21 @@
+{
+    "source": "freqtrade/freqtrade-strategies (คลังทางการของ Freqtrade)",
+    "base_url": "https://raw.githubusercontent.com/freqtrade/freqtrade-strategies/main/user_data/strategies/",
+    "note": "กลยุทธ์เหล่านี้ส่วนใหญ่เป็นตัวอย่าง/ชุมชน (spot, long เป็นหลัก) นำมา backtest เทียบไอเดียได้ แต่ยังไม่การันตีกำไร ต้องเทสเองเสมอ",
+    "strategies": [
+        { "file": "Strategy001.py", "class": "Strategy001", "style": "Trend (EMA+MACD+Heikin-Ashi)", "desc": "ตัวอย่างทางการ #1 — เข้าเมื่อ EMA/MACD ยืนยันเทรนด์ขาขึ้น", "needs": [] },
+        { "file": "Strategy002.py", "class": "Strategy002", "style": "Reversal (Stoch+RSI+SAR)", "desc": "ตัวอย่างทางการ #2 — จับจังหวะกลับตัวด้วย Stochastic/RSI/Parabolic SAR", "needs": [] },
+        { "file": "Strategy003.py", "class": "Strategy003", "style": "Reversal (RSI+MFI+Fisher)", "desc": "ตัวอย่างทางการ #3 — mean-reversion ด้วย RSI/MFI/Fisher-RSI", "needs": [] },
+        { "file": "Strategy004.py", "class": "Strategy004", "style": "Reversal (MFI+ADX+EMA)", "desc": "ตัวอย่างทางการ #4 — เข้าเมื่อโมเมนตัมอ่อนตัวในเทรนด์", "needs": [] },
+        { "file": "Strategy005.py", "class": "Strategy005", "style": "Trend (EMA+RSI+ADX)", "desc": "ตัวอย่างทางการ #5 — ตามเทรนด์ + ยืนยันแรงด้วย ADX", "needs": [] },
+        { "file": "Supertrend.py", "class": "Supertrend", "style": "Trend-following (Supertrend)", "desc": "ตามเทรนด์ด้วยอินดิเคเตอร์ Supertrend หลายชั้น — คลาสสิกสายเทรนด์", "needs": [] },
+        { "file": "Bandtastic.py", "class": "Bandtastic", "style": "Mean-reversion (Bollinger+RSI)", "desc": "Bollinger Bands + RSI จูน hyperopt ได้เยอะ — ยอดนิยมในชุมชน", "needs": [] },
+        { "file": "Diamond.py", "class": "Diamond", "style": "Oscillator (hyperopt-heavy)", "desc": "โครงเบา จูน hyperopt ง่าย เหมาะเอาไว้เป็นฐานทดลอง", "needs": [] },
+        { "file": "MultiMa.py", "class": "MultiMa", "style": "Trend (multi moving-average)", "desc": "ใช้ MA หลายเส้นยืนยันทิศทางก่อนเข้า", "needs": [] },
+        { "file": "UniversalMACD.py", "class": "UniversalMACD", "style": "Momentum (MACD)", "desc": "เข้า-ออกตามสัญญาณ MACD ล้วนๆ เรียบง่าย", "needs": [] },
+        { "file": "SwingHighToSky.py", "class": "SwingHighToSky", "style": "Swing (CCI+ADX)", "desc": "จับ swing ด้วย CCI/ADX เหมาะ timeframe ใหญ่", "needs": [] },
+        { "file": "PatternRecognition.py", "class": "PatternRecognition", "style": "Candlestick patterns", "desc": "เข้าออกตามรูปแท่งเทียน (TA-Lib candlestick)", "needs": [] },
+        { "file": "GodStra.py", "class": "GodStra", "style": "Genetic (finta)", "desc": "กลยุทธ์สาย genetic ยอดฮิต — *ต้องลง finta เพิ่ม*", "needs": ["finta"] },
+        { "file": "Heracles.py", "class": "Heracles", "style": "Indicator mix (finta)", "desc": "ผสมอินดิเคเตอร์หลายตัว — *ต้องลง finta เพิ่ม*", "needs": ["finta"] }
+    ]
+}

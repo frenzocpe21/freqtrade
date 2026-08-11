@@ -6,6 +6,7 @@
 
 from __future__ import annotations
 
+import os
 import sqlite3
 from pathlib import Path
 from typing import Any
@@ -114,22 +115,42 @@ def fetch_pair_snapshot(
 # ---------------------------------------------------------------- trade lookup
 
 
+def _db_candidates() -> list[Path]:
+    """ตำแหน่งที่ไฟล์ DB อาจอยู่ (เรียงตามลำดับความน่าจะเป็น)."""
+    root = Path(__file__).resolve().parents[1]  # repo root (= /app ใน container)
+    names = ["tradesv3.dryrun.sqlite", "tradesv3.sqlite", "tradesv3.live.sqlite"]
+    dirs = [root / "user_data", root, Path("/freqtrade/user_data")]
+    return [d / n for d in dirs for n in names]
+
+
 def _default_db_path() -> Path:
-    # ค่าเริ่มต้นของ Freqtrade: dry-run สร้าง tradesv3.dryrun.sqlite ที่ working dir (repo root)
-    # ถ้าคุณตั้ง db_url เองใน config ให้ระบุ --db แทน
-    root = Path(__file__).resolve().parents[1]
-    return root / "tradesv3.dryrun.sqlite"
+    """คืน DB ที่มีอยู่จริงตัวแรก (env FORETRADE_DB ชนะทุกอย่าง).
+
+    dry-run/live ของ Freqtrade เขียน DB ตาม --db-url ใน config
+    (ของเราอยู่ที่ user_data/) ถ้าตั้ง db_url เองก็ระบุ --db หรือ FORETRADE_DB ได้
+    """
+    env = os.getenv("FORETRADE_DB")
+    if env:
+        return Path(env)
+    candidates = _db_candidates()
+    for p in candidates:
+        if p.exists():
+            return p
+    return candidates[0]  # ไม่เจอ — คืนตัวแรกไว้ให้ error message ชี้ทางถูก
 
 
 def load_trade(trade_id: int, db_path: str | Path | None = None) -> dict[str, Any]:
     """อ่านทรานแซกชันตาม id จากฐานข้อมูล Freqtrade (tradesv3*.sqlite)."""
     path = Path(db_path) if db_path else _default_db_path()
     if not path.exists():
+        searched = "\n  ".join(str(p) for p in _db_candidates())
         raise RuntimeError(
-            f"ไม่พบฐานข้อมูล {path} — ระบุ --db หรือรัน dry-run/live ให้มีเทรดก่อน"
+            f"ไม่พบฐานข้อมูล {path} — ระบุ --db / ตั้ง env FORETRADE_DB "
+            f"หรือรัน dry-run/live ให้มีเทรดก่อน\nค้นหาที่:\n  {searched}"
         )
 
-    con = sqlite3.connect(str(path))
+    # เปิดแบบ read-only (URI) เผื่อ DB อยู่บน mount ที่ ro — กัน error "readonly database"
+    con = sqlite3.connect(f"file:{path}?mode=ro", uri=True)
     con.row_factory = sqlite3.Row
     try:
         row = con.execute("SELECT * FROM trades WHERE id = ?", (trade_id,)).fetchone()

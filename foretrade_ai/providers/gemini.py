@@ -5,7 +5,8 @@ import os
 from .base import LLMProvider
 
 # เปลี่ยนรุ่นได้ผ่าน env GEMINI_MODEL
-DEFAULT_MODEL = "gemini-2.5-flash"
+# ใช้ alias "-latest" ที่ Google การันตีว่าชี้รุ่นล่าสุดเสมอ (รุ่นเลขตายตัวอาจถูกปิด)
+DEFAULT_MODEL = "gemini-flash-latest"
 
 
 class GeminiProvider(LLMProvider):
@@ -21,7 +22,7 @@ class GeminiProvider(LLMProvider):
             raise RuntimeError("ต้องติดตั้งก่อน:  pip install google-genai") from e
 
         self._genai = genai
-        self._model = os.getenv("GEMINI_MODEL", DEFAULT_MODEL)
+        self._model = os.getenv("GEMINI_MODEL") or DEFAULT_MODEL
         self._client = genai.Client(api_key=api_key)
 
     def generate(self, system: str, prompt: str) -> str:

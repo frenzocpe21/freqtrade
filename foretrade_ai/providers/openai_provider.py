@@ -19,7 +19,7 @@ class OpenAIProvider(LLMProvider):
         except ImportError as e:
             raise RuntimeError("ต้องติดตั้งก่อน:  pip install openai") from e
 
-        self._model = os.getenv("OPENAI_MODEL", DEFAULT_MODEL)
+        self._model = os.getenv("OPENAI_MODEL") or DEFAULT_MODEL
         self._client = OpenAI()
 
     def generate(self, system: str, prompt: str) -> str:

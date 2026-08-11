@@ -13,6 +13,8 @@ cd /d "%~dp0"
 set "COMPOSE=docker compose -f docker-compose.foretrade.yml"
 set "RUN=%COMPOSE% run --rm foretrade"
 set "CFG=--config /freqtrade/user_data/config.dry.json"
+REM backtest/download/compare ต้องใช้ StaticPairList (คู่ตายตัว) แทน VolumePairList
+set "BTCFG=--config /freqtrade/user_data/config.dry.json --config /freqtrade/user_data/config.backtest.json"
 set "STRAT=--strategy MomentumBreakout"
 
 REM --- Check Docker is installed and running ---
@@ -48,23 +50,27 @@ echo   8^) list      List available strategies
 echo   9^) import    Download a strategy .py from a URL
 echo  10^) compare   Backtest several strategies side by side
 echo  11^) web       Start Thai dashboard (http://127.0.0.1:8099)
+echo  12^) catalog   Browse and download popular strategies
 echo   0^) exit
 echo ===========================================
 set "SEL="
 set /p "SEL=Type 0-11 and press Enter: "
 if "%SEL%"=="0" goto :eof
-if "%SEL%"=="1"  ( call :dispatch ui       & goto :menu )
-if "%SEL%"=="2"  ( call :dispatch data     & goto :menu )
-if "%SEL%"=="3"  ( call :dispatch backtest & goto :menu )
-if "%SEL%"=="4"  ( call :dispatch up       & goto :menu )
-if "%SEL%"=="5"  ( call :dispatch logs     & goto :menu )
-if "%SEL%"=="6"  ( call :dispatch down     & goto :menu )
-if "%SEL%"=="7"  ( call :dispatch test     & goto :menu )
-if "%SEL%"=="8"  ( call :dispatch list     & goto :menu )
-if "%SEL%"=="9"  ( call :dispatch import   & goto :menu )
-if "%SEL%"=="10" ( call :dispatch compare  & goto :menu )
-if "%SEL%"=="11" ( call :dispatch web      & goto :menu )
-echo Invalid choice: %SEL%
+set "CMDNAME="
+if "%SEL%"=="1"  set "CMDNAME=ui"
+if "%SEL%"=="2"  set "CMDNAME=data"
+if "%SEL%"=="3"  set "CMDNAME=backtest"
+if "%SEL%"=="4"  set "CMDNAME=up"
+if "%SEL%"=="5"  set "CMDNAME=logs"
+if "%SEL%"=="6"  set "CMDNAME=down"
+if "%SEL%"=="7"  set "CMDNAME=test"
+if "%SEL%"=="8"  set "CMDNAME=list"
+if "%SEL%"=="9"  set "CMDNAME=import"
+if "%SEL%"=="10" set "CMDNAME=compare"
+if "%SEL%"=="11" set "CMDNAME=web"
+if "%SEL%"=="12" set "CMDNAME=catalog"
+if not defined CMDNAME ( echo Invalid choice: %SEL% & goto :menu )
+call :dispatch %CMDNAME%
 goto :menu
 
 REM ============================================================
@@ -81,7 +87,8 @@ if /i "%CMD%"=="list"     goto :do_list
 if /i "%CMD%"=="import"   goto :do_import
 if /i "%CMD%"=="compare"  goto :do_compare
 if /i "%CMD%"=="web"      goto :do_web
-echo Unknown command "%CMD%" - choose: up^|logs^|down^|data^|backtest^|ui^|test^|list^|import^|compare^|web
+if /i "%CMD%"=="catalog"  goto :do_catalog
+echo Unknown command "%CMD%" - choose: up^|logs^|down^|data^|backtest^|ui^|test^|list^|import^|compare^|web^|catalog
 exit /b 1
 
 :do_up
@@ -108,13 +115,13 @@ echo -^> Installing FreqUI in container...
 exit /b 0
 
 :do_data
-echo -^> Downloading 90 days of data (5m)...
-%RUN% download-data %CFG% --days 90 --timeframes 5m
+echo -^> Downloading 90 days of data (5m) for the backtest pair list...
+%RUN% download-data %BTCFG% --days 90 --timeframes 5m
 exit /b 0
 
 :do_backtest
-echo -^> Backtesting MomentumBreakout (90 days)...
-%RUN% backtesting %CFG% %STRAT% --timerange=-90 --timeframe 5m
+echo -^> Backtesting MomentumBreakout (all downloaded data, StaticPairList)...
+%RUN% backtesting %BTCFG% %STRAT% --timeframe 5m
 exit /b 0
 
 :do_test
@@ -152,7 +159,14 @@ echo    Enter CLASS names separated by spaces (see 'list'), e.g. MomentumBreakou
 set "NAMES="
 set /p "NAMES=Strategies: "
 if "%NAMES%"=="" ( echo Cancelled. & exit /b 1 )
-%RUN% backtesting %CFG% --strategy-list %NAMES% --timerange=-90 --timeframe 5m
+%RUN% backtesting %BTCFG% --strategy-list %NAMES% --timeframe 5m
+exit /b 0
+
+:do_catalog
+echo -^> Strategy catalog (pick numbers to download popular strategies)
+%COMPOSE% run --rm --entrypoint python foretrade /freqtrade/user_data/foretrade_catalog.py
+echo.
+echo    Downloaded into user_data\strategies\ - use option 8 (list) then 10 (compare).
 exit /b 0
 
 :do_web

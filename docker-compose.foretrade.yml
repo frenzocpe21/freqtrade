@@ -45,12 +45,18 @@ services:
       FREQTRADE_PASSWORD: "CHANGE_ME_password"
       WEB_HOST: "0.0.0.0"
       WEB_PORT: "8099"
+      # ที่อยู่ DB สำหรับปุ่ม "วิเคราะห์ทรานแซกชัน" (บอทเขียนไว้ใน user_data/)
+      FORETRADE_DB: "/app/user_data/tradesv3.dryrun.sqlite"
       # ส่งคีย์ AI ผ่าน .env (ถ้าจะใช้ปุ่มวิเคราะห์) - ไม่ตั้งก็รันแดชบอร์ดเฉยๆ ได้
       AI_PROVIDER: "${AI_PROVIDER:-}"
       AI_LANG: "${AI_LANG:-th}"
       ANTHROPIC_API_KEY: "${ANTHROPIC_API_KEY:-}"
       OPENAI_API_KEY: "${OPENAI_API_KEY:-}"
       GEMINI_API_KEY: "${GEMINI_API_KEY:-}"
+      # เลือกรุ่นของแต่ละ provider ผ่าน .env ได้ (ไม่ตั้งก็ใช้ค่า default ในโค้ด)
+      ANTHROPIC_MODEL: "${ANTHROPIC_MODEL:-}"
+      OPENAI_MODEL: "${OPENAI_MODEL:-}"
+      GEMINI_MODEL: "${GEMINI_MODEL:-}"
     entrypoint: ["/bin/sh", "-c"]
     # ติดตั้ง SDK ของ AI (ถ้ามีคีย์จะได้ใช้ปุ่มวิเคราะห์) แล้วรันเซิร์ฟเวอร์
     # ถ้า pip ล้มเหลว ก็ยังรันแดชบอร์ดพื้นฐานได้ (ปุ่ม AI จะขึ้น error)

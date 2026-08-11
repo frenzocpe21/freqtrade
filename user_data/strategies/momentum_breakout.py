@@ -35,7 +35,7 @@ class MomentumBreakout(IStrategy):
     # เปิด short ได้ (ใช้ได้เฉพาะ futures/margin; ถ้าเป็น spot Freqtrade จะข้าม short ให้เอง)
     can_short: bool = True
 
-    timeframe = "5m"
+    timeframe = "15m"
 
     # รันคำนวณ indicator เฉพาะแท่งใหม่ (เร็วขึ้น)
     process_only_new_candles = True
@@ -46,19 +46,20 @@ class MomentumBreakout(IStrategy):
     ignore_roi_if_entry_signal = False
 
     # --- Risk: บังคับ SL ทุกไม้ + trailing กันกำไรหลุด ---
-    # ROI แบบ time-based: ยิ่งถือนานยิ่งรับกำไรน้อยลง (ปิดไว)
+    # ROI แบบ time-based (นาที) — ตั้งเป้าใหญ่ขึ้น/ยาวขึ้นสำหรับ 15m
+    # เพื่อ "ปล่อยไม้ชนะวิ่ง" ไม่รีบเก็บกำไรเล็กจนโดน fee กิน
     minimal_roi = {
-        "0": 0.03,   # เป้ากำไร 3% ทันที
-        "20": 0.015,  # หลัง 20 นาที รับ 1.5%
-        "40": 0.007,  # หลัง 40 นาที รับ 0.7%
-        "60": 0.0,   # หลัง 60 นาที ออกที่เท่าทุน
+        "0": 0.05,    # เป้ากำไร 5% ทันที
+        "60": 0.03,   # หลัง 1 ชม. รับ 3%
+        "180": 0.015,  # หลัง 3 ชม. รับ 1.5%
+        "360": 0.0,   # หลัง 6 ชม. ออกที่เท่าทุน
     }
 
     stoploss = -0.03  # ตัดขาดทุนที่ -3% (จะถูก override ได้จาก config)
 
     trailing_stop = True
-    trailing_stop_positive = 0.008          # เริ่มลาก stop เมื่อกำไร ~0.8%
-    trailing_stop_positive_offset = 0.015   # ล็อกกำไรหลังแตะ 1.5%
+    trailing_stop_positive = 0.012          # ลาก stop ตามห่าง ~1.2%
+    trailing_stop_positive_offset = 0.03    # เริ่มลากเมื่อกำไรแตะ 3% (ปล่อยวิ่งก่อน)
     trailing_only_offset_is_reached = True
 
     # ต้องมีแท่งย้อนหลังพอสำหรับ Donchian + EMA เทรนด์
@@ -110,9 +111,9 @@ class MomentumBreakout(IStrategy):
 
     # ---------------- Hyperopt parameters ----------------
     # ความยาวกรอบ breakout (Donchian)
-    breakout_window = IntParameter(15, 60, default=25, space="buy", optimize=True, load=True)
+    breakout_window = IntParameter(15, 60, default=40, space="buy", optimize=True, load=True)
     # ตัวคูณ volume: ต้องมากกว่าค่าเฉลี่ยกี่เท่าถึงถือว่า "แรงจริง"
-    volume_factor = DecimalParameter(1.0, 3.0, default=1.5, decimals=1, space="buy", optimize=True, load=True)
+    volume_factor = DecimalParameter(1.0, 3.0, default=2.0, decimals=1, space="buy", optimize=True, load=True)
     # ความยาว EMA เทรนด์ (เข้า long เฉพาะเหนือ EMA, short เฉพาะใต้ EMA)
     trend_ema = IntParameter(50, 200, default=200, space="buy", optimize=True, load=True)
     # เปิด/ปิดตัวกรองเทรนด์
@@ -174,18 +175,22 @@ class MomentumBreakout(IStrategy):
         return dataframe
 
     def populate_exit_trend(self, dataframe: DataFrame, metadata: dict) -> DataFrame:
-        # ออก long เมื่อโมเมนตัมหมด: ราคาหลุดกลับใต้เส้นกลางกรอบ
+        # ออกเมื่อ "เทรนด์พังจริง" เท่านั้น: ราคาข้ามเส้นเทรนด์ EMA กลับฝั่ง
+        # (เดิมใช้เส้นกลางกรอบ Donchian ซึ่งไวเกิน → เข้า-ออกวนถี่ โดน fee กิน)
+        # กำไรปกติปล่อยให้ ROI / trailing stop จัดการแทน
+
+        # ออก long เมื่อราคาหลุดใต้เส้นเทรนด์
         exit_long_mask = qtpylib.crossed_below(
-            dataframe["close"], dataframe["donchian_mid"]
+            dataframe["close"], dataframe["trend_ema"]
         ) & (dataframe["volume"] > 0)
         dataframe.loc[exit_long_mask, "exit_long"] = 1
-        dataframe.loc[exit_long_mask, "exit_tag"] = "momentum_fade"
+        dataframe.loc[exit_long_mask, "exit_tag"] = "trend_break"
 
-        # ออก short เมื่อราคากลับขึ้นเหนือเส้นกลางกรอบ
+        # ออก short เมื่อราคากลับขึ้นเหนือเส้นเทรนด์
         exit_short_mask = qtpylib.crossed_above(
-            dataframe["close"], dataframe["donchian_mid"]
+            dataframe["close"], dataframe["trend_ema"]
         ) & (dataframe["volume"] > 0)
         dataframe.loc[exit_short_mask, "exit_short"] = 1
-        dataframe.loc[exit_short_mask, "exit_tag"] = "momentum_fade"
+        dataframe.loc[exit_short_mask, "exit_tag"] = "trend_break"
 
         return dataframe

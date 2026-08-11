@@ -19,7 +19,7 @@ class ClaudeProvider(LLMProvider):
         except ImportError as e:
             raise RuntimeError("ต้องติดตั้งก่อน:  pip install anthropic") from e
 
-        self._model = os.getenv("ANTHROPIC_MODEL", DEFAULT_MODEL)
+        self._model = os.getenv("ANTHROPIC_MODEL") or DEFAULT_MODEL
         self._anthropic = __import__("anthropic")
         self._client = self._anthropic.Anthropic()
 
