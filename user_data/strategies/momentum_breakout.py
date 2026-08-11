@@ -93,6 +93,21 @@ class MomentumBreakout(IStrategy):
         {"method": "CooldownPeriod", "stop_duration_candles": 2},
     ]
 
+    # --- plot_config: วาดอินดิเคเตอร์ของเราทับบนกราฟ FreqUI ---
+    plot_config = {
+        "main_plot": {
+            "donchian_upper": {"color": "#26a69a"},   # กรอบบน (เขียว)
+            "donchian_lower": {"color": "#ef5350"},   # กรอบล่าง (แดง)
+            "donchian_mid": {"color": "#888888"},     # เส้นกลาง (เทา)
+            "trend_ema": {"color": "#2962ff"},        # EMA เทรนด์ (น้ำเงิน)
+        },
+        "subplots": {
+            "RSI": {"rsi": {"color": "#ab47bc"}},
+            "ATR": {"atr": {"color": "#ffa726"}},
+            "Volume MA": {"volume_ma": {"color": "#78909c"}},
+        },
+    }
+
     # ---------------- Hyperopt parameters ----------------
     # ความยาวกรอบ breakout (Donchian)
     breakout_window = IntParameter(15, 60, default=25, space="buy", optimize=True, load=True)
