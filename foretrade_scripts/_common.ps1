@@ -1,25 +1,25 @@
-# ตัวช่วยร่วม: หา repo root และ activate venv (.venv) ถ้ามี
-# ไฟล์นี้ถูก dot-source โดยสคริปต์อื่น
+# Shared helper: locate repo root and activate venv (.venv) if present.
+# Dot-sourced by the other scripts.
 
 $ErrorActionPreference = "Stop"
 
-# repo root = โฟลเดอร์แม่ของ foretrade_scripts
+# repo root = parent of foretrade_scripts
 $script:RepoRoot = Split-Path -Parent $PSScriptRoot
 Set-Location $script:RepoRoot
 
-# พยายาม activate venv ถ้ายังไม่อยู่ใน venv
+# Activate venv if not already active
 if (-not $env:VIRTUAL_ENV) {
     $venvActivate = Join-Path $script:RepoRoot ".venv\Scripts\Activate.ps1"
     if (Test-Path $venvActivate) {
         Write-Host "-> activating venv (.venv)" -ForegroundColor DarkGray
         & $venvActivate
     } else {
-        Write-Host "!! ไม่พบ .venv — ถ้ายังไม่ติดตั้ง ให้รัน setup.ps1 ของ Freqtrade ก่อน" -ForegroundColor Yellow
+        Write-Host "!! .venv not found - run foretrade_install.bat first" -ForegroundColor Yellow
     }
 }
 
 function Assert-Freqtrade {
     if (-not (Get-Command freqtrade -ErrorAction SilentlyContinue)) {
-        throw "ไม่พบคำสั่ง 'freqtrade' — ยังไม่ได้ติดตั้ง/activate venv (ดู README-foretrade.md)"
+        throw "'freqtrade' command not found - venv not installed/activated (see README-foretrade.md)"
     }
 }

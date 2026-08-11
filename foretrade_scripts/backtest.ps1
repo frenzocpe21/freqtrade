@@ -1,10 +1,10 @@
-# ForeTrade — backtest กลยุทธ์ MomentumBreakout
+# ForeTrade - backtest the MomentumBreakout strategy
 #
-# ใช้:
-#   .\foretrade_scripts\backtest.ps1                 # backtest 90 วันล่าสุด
+# Usage:
+#   .\foretrade_scripts\backtest.ps1                 # backtest last 90 days
 #   .\foretrade_scripts\backtest.ps1 -Days 30
 #   .\foretrade_scripts\backtest.ps1 -Timerange 20250101-20250601
-#   .\foretrade_scripts\backtest.ps1 -SkipDownload   # ไม่ดาวน์โหลดข้อมูลใหม่
+#   .\foretrade_scripts\backtest.ps1 -SkipDownload   # do not re-download data
 
 param(
     [int]$Days = 90,
@@ -25,12 +25,12 @@ if (-not $Timerange) {
 }
 
 if (-not $SkipDownload) {
-    Write-Host "== ดาวน์โหลดข้อมูลย้อนหลัง ($Timerange, $Timeframe) ==" -ForegroundColor Cyan
+    Write-Host "== Downloading history ($Timerange, $Timeframe) ==" -ForegroundColor Cyan
     freqtrade download-data -c $config --timerange $Timerange --timeframes $Timeframe
-    if ($LASTEXITCODE -ne 0) { throw "download-data ล้มเหลว" }
+    if ($LASTEXITCODE -ne 0) { throw "download-data failed" }
 }
 
-Write-Host "== backtest $strategy ($Timerange) ==" -ForegroundColor Cyan
+Write-Host "== Backtesting $strategy ($Timerange) ==" -ForegroundColor Cyan
 freqtrade backtesting -c $config --strategy $strategy --timerange $Timerange --timeframe $Timeframe
 
-Write-Host "`nเสร็จ — ผลอยู่ใน user_data\backtest_results\" -ForegroundColor Green
+Write-Host "`nDone - results in user_data\backtest_results\" -ForegroundColor Green
