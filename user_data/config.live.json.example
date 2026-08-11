@@ -1,0 +1,140 @@
+{
+    "$schema": "https://schema.freqtrade.io/schema.json",
+
+    // ============================================================
+    //  ForeTrade — โหมดเงินจริง (LIVE)  ⚠️  เทรดด้วยเงินจริง
+    // ============================================================
+    //  ก่อนใช้:
+    //   1) คัดลอกไฟล์นี้เป็น config.live.json  (ห้าม commit ไฟล์ที่มีคีย์จริง — อยู่ใน .gitignore แล้ว)
+    //   2) ผ่าน backtest + dry-run มาแล้วหลายสัปดาห์ ยืนยันว่ามี edge จริง
+    //   3) ทดสอบกับ Binance TESTNET ก่อน (ใส่ ccxt_config sandbox ด้านล่าง)
+    //   4) เริ่มด้วยเงินก้อนเล็กมาก
+    //   ผู้ช่วย AI จะไม่กดเทรด/ใส่คีย์แทนคุณ — คุณเป็นผู้ยืนยันเองทั้งหมด
+    // ============================================================
+
+    "max_open_trades": 3,
+    "stake_currency": "USDT",
+    "stake_amount": 20,
+    "tradable_balance_ratio": 0.5,
+    "fiat_display_currency": "USD",
+    "timeframe": "5m",
+
+    // ⚠️ ตั้งเป็น false = เทรดเงินจริง. ปล่อย true ไว้จนกว่าจะพร้อมจริง
+    "dry_run": false,
+    "cancel_open_orders_on_exit": true,
+
+    "trading_mode": "futures",
+    "margin_mode": "isolated",
+
+    "unfilledtimeout": {
+        "entry": 5,
+        "exit": 5,
+        "exit_timeout_count": 0,
+        "unit": "minutes"
+    },
+
+    "entry_pricing": {
+        "price_side": "same",
+        "use_order_book": true,
+        "order_book_top": 1
+    },
+    "exit_pricing": {
+        "price_side": "same",
+        "use_order_book": true,
+        "order_book_top": 1
+    },
+
+    "exchange": {
+        "name": "binance",
+        // ใส่คีย์ของคุณเอง (Futures API key ที่เปิดสิทธิ์เทรด แต่ไม่เปิดสิทธิ์ถอน)
+        "key": "YOUR_BINANCE_API_KEY",
+        "secret": "YOUR_BINANCE_API_SECRET",
+        "ccxt_config": {
+            // สำหรับ Binance TESTNET ให้เปิดบรรทัดนี้เป็น true (ทดสอบก่อน live จริง)
+            // "sandbox": true
+        },
+        "ccxt_async_config": {},
+        "pair_whitelist": [],
+        "pair_blacklist": [
+            "(BNB|BUSD|USDC|TUSD|FDUSD|DAI)/.*",
+            ".*(UP|DOWN|BULL|BEAR)/.*"
+        ]
+    },
+
+    "pairlists": [
+        {
+            "method": "VolumePairList",
+            "number_assets": 30,
+            "sort_key": "quoteVolume",
+            "refresh_period": 1800
+        },
+        { "method": "AgeFilter", "min_days_listed": 10 },
+        { "method": "PrecisionFilter" },
+        { "method": "PriceFilter", "low_price_ratio": 0.01 },
+        { "method": "SpreadFilter", "max_spread_ratio": 0.005 },
+        {
+            "method": "RangeStabilityFilter",
+            "lookback_days": 3,
+            "min_rate_of_change": 0.03,
+            "refresh_period": 1800
+        },
+        {
+            "method": "VolatilityFilter",
+            "lookback_days": 3,
+            "min_volatility": 0.02,
+            "max_volatility": 0.75,
+            "refresh_period": 43200
+        },
+        { "method": "VolumePairList", "number_assets": 15, "sort_key": "quoteVolume" }
+    ],
+
+    "protections": [
+        {
+            "method": "StoplossGuard",
+            "lookback_period_candles": 24,
+            "trade_limit": 4,
+            "stop_duration_candles": 12,
+            "only_per_pair": false
+        },
+        {
+            "method": "MaxDrawdown",
+            "lookback_period_candles": 288,
+            "trade_limit": 10,
+            "stop_duration_candles": 48,
+            "max_allowed_drawdown": 0.1
+        },
+        { "method": "CooldownPeriod", "stop_duration_candles": 2 }
+    ],
+
+    "telegram": {
+        "enabled": false,
+        "token": "your_telegram_token",
+        "chat_id": "your_telegram_chat_id"
+    },
+
+    "webhook": {
+        "enabled": false,
+        "url": "http://127.0.0.1:8090/freqtrade",
+        "format": "json"
+    },
+
+    "api_server": {
+        "enabled": true,
+        "listen_ip_address": "127.0.0.1",
+        "listen_port": 8080,
+        "verbosity": "error",
+        "enable_openapi": false,
+        "jwt_secret_key": "CHANGE_ME_random_secret_please",
+        "ws_token": "CHANGE_ME_ws_token",
+        "CORS_origins": [],
+        "username": "foretrade",
+        "password": "CHANGE_ME_password"
+    },
+
+    "bot_name": "ForeTrade-live",
+    "initial_state": "stopped",
+    "force_entry_enable": false,
+    "internals": {
+        "process_throttle_secs": 5
+    }
+}

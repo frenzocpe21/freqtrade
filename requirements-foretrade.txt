@@ -1,0 +1,12 @@
+# ForeTrade — dependency ส่วนเสริม (นอกเหนือจาก Freqtrade)
+#
+# ccxt, pandas, fastapi, uvicorn มากับ Freqtrade อยู่แล้ว
+# ด้านล่างคือ SDK ของ LLM — ติดตั้งเฉพาะเจ้าที่จะใช้ก็ได้
+#
+#   pip install -r requirements-foretrade.txt
+# หรือเลือกเฉพาะตัว เช่น:
+#   pip install anthropic
+
+anthropic>=0.40      # Claude
+openai>=1.40         # ChatGPT
+google-genai>=0.3    # Gemini

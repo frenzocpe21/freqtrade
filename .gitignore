@@ -115,3 +115,18 @@ target/
 !config_examples/config_freqai.example.json
 
 docker-compose-*.yml
+
+# ============================================================
+#  ForeTrade — ไฟล์ที่ต้องการให้ track (override กฎด้านบน)
+# ============================================================
+!user_data/strategies/
+!user_data/strategies/**
+!user_data/config.dry.json
+!user_data/config.live.json.example
+
+# ForeTrade — ห้าม track (มีความลับ/สร้างตอนรัน)
+user_data/config.live.json
+config.live.json
+*.env
+.env.*
+
