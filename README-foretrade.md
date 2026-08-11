@@ -106,8 +106,18 @@ python -m foretrade_ai.cli analyze-trade 42
 python -m foretrade_ai.cli analyze-trade 42 --provider openai --db tradesv3.dryrun.sqlite
 ```
 
+เลือกภาษาผลลัพธ์ (ไทย/อังกฤษ):
+
+```bash
+python -m foretrade_ai.cli analyze-pair BTC/USDT --lang en   # อังกฤษ
+python -m foretrade_ai.cli analyze-pair BTC/USDT --lang th   # ไทย (ค่าเริ่มต้น)
+# หรือตั้งถาวร: $env:AI_LANG = "en"
+```
+
 > เปลี่ยนรุ่นโมเดลได้ผ่าน env `ANTHROPIC_MODEL` / `OPENAI_MODEL` / `GEMINI_MODEL`
 > ผลลัพธ์มี disclaimer เสมอ และไม่มีการยิงออเดอร์ใดๆ
+>
+> **หมายเหตุ:** FreqUI (เว็บแดชบอร์ด) รองรับเฉพาะภาษาอังกฤษ — ปุ่มสลับ TH/EN มีเฉพาะใน AI Analyst
 
 ---
 

@@ -5,9 +5,10 @@ CLI สำหรับ AI Analyst (on-demand)
     python -m foretrade_ai.cli analyze-pair BTC/USDT:USDT
     python -m foretrade_ai.cli analyze-pair ETH/USDT --provider gemini --timeframe 15m
     python -m foretrade_ai.cli analyze-trade 42
-    python -m foretrade_ai.cli analyze-trade 42 --provider openai --db user_data/tradesv3.dryrun.sqlite
+    python -m foretrade_ai.cli analyze-pair BTC/USDT --lang en   # ผลลัพธ์ภาษาอังกฤษ
 
 เลือก provider ได้จาก --provider หรือ env AI_PROVIDER (claude | openai | gemini)
+เลือกภาษาได้จาก --lang th|en หรือ env AI_LANG (ค่าเริ่มต้น th)
 คีย์ตั้งผ่าน env: ANTHROPIC_API_KEY / OPENAI_API_KEY / GEMINI_API_KEY
 """
 
@@ -28,6 +29,10 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument(
         "--provider", default=None, help="claude | openai | gemini (ค่าเริ่มต้น: env AI_PROVIDER หรือ claude)"
     )
+    parser.add_argument(
+        "--lang", default=None, choices=["th", "en"],
+        help="ภาษาผลลัพธ์ th | en (ค่าเริ่มต้น: env AI_LANG หรือ th)",
+    )
     sub = parser.add_subparsers(dest="command", required=True)
 
     p_pair = sub.add_parser("analyze-pair", help="วิเคราะห์คู่เทรดหนึ่งตัว")
@@ -43,9 +48,13 @@ def main(argv: list[str] | None = None) -> int:
     try:
         provider = get_provider(args.provider)
         if args.command == "analyze-pair":
-            out = analyze_pair(args.symbol, provider=provider, timeframe=args.timeframe)
+            out = analyze_pair(
+                args.symbol, provider=provider, timeframe=args.timeframe, lang=args.lang
+            )
         elif args.command == "analyze-trade":
-            out = analyze_trade(args.trade_id, provider=provider, db_path=args.db)
+            out = analyze_trade(
+                args.trade_id, provider=provider, db_path=args.db, lang=args.lang
+            )
         else:  # pragma: no cover
             parser.error("ไม่รู้จักคำสั่ง")
             return 2
