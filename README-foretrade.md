@@ -16,29 +16,34 @@
 
 ---
 
-## 1) ติดตั้ง (ครั้งเดียว)
+## 1) ติดตั้ง (ครั้งเดียว) — เลือกทางใดทางหนึ่ง
 
-ต้องมี **Python 3.11+** และ Git บน Windows แล้วรัน setup ของ Freqtrade (สร้าง venv + ติดตั้ง TA-Lib ให้):
+### ทาง A: Docker (แนะนำ — สะอาดสุด ไม่ต้องติดตั้ง Python/TA-Lib)
+ต้องมี **Docker Desktop** (Windows/Mac) หรือ Docker Engine (Linux/WSL)
 
-```powershell
-.\setup.ps1 -Install
+```bat
+foretrade_docker.bat ui        REM ติดตั้ง FreqUI ในคอนเทนเนอร์ (ครั้งแรก)
+foretrade_docker.bat data      REM ดาวน์โหลดข้อมูลย้อนหลัง 90 วัน
+foretrade_docker.bat backtest  REM ทดสอบกลยุทธ์
+foretrade_docker.bat up        REM รัน dry-run + เปิด FreqUI (http://127.0.0.1:8080)
+foretrade_docker.bat logs      REM ดู log สด
+foretrade_docker.bat down      REM หยุด
 ```
 
-จากนั้น activate venv และติดตั้ง SDK ของ LLM ที่จะใช้ (เลือกเฉพาะเจ้าที่ต้องการ):
+### ทาง B: Native Windows (ติดตั้งลงเครื่อง)
+ต้องมี **Python 3.11/3.12/3.13** และ Git — แล้วดับเบิลคลิก/รัน:
 
-```powershell
-.\.venv\Scripts\Activate.ps1
-pip install -r requirements-foretrade.txt
+```bat
+foretrade_install.bat
 ```
 
-ติดตั้ง FreqUI (เว็บแดชบอร์ด) ครั้งแรก:
-
-```bash
-freqtrade install-ui
-```
+ไฟล์นี้จะสร้าง `.venv`, ติดตั้ง Freqtrade (มี TA-Lib wheel), SDK ของ LLM, และ FreqUI ให้อัตโนมัติ
 
 > **ก่อนใช้จริง** เปิด `user_data/config.dry.json` แล้วเปลี่ยนค่า `CHANGE_ME_*`
 > (`jwt_secret_key`, `ws_token`, `password`) ใน `api_server`
+>
+> หัวข้อ 2-3, 6 ด้านล่างเป็นคำสั่งสำหรับ **ทาง B (native)**; ถ้าใช้ Docker ให้ใช้คำสั่ง
+> `foretrade_docker.bat ...` แทนตามด้านบน
 
 ---
 
@@ -141,12 +146,16 @@ LINE Notify ปิดบริการแล้ว — ใช้ **LINE Messagi
 ## โครงสร้างที่เราเพิ่ม
 
 ```
-user_data/strategies/momentum_breakout.py   กลยุทธ์ Momentum Breakout (pluggable)
-user_data/config.dry.json                   config โหมดจำลอง + pairlist คัดคู่ + webhook/api
-user_data/config.live.json.example          ตัวอย่าง config โหมดจริง (ใส่คีย์เอง)
-foretrade_scripts/*.ps1                      สคริปต์ backtest / run_dry / run_live
-foretrade_ai/                                AI Analyst (provider: claude/openai/gemini)
-foretrade_line/                              relay แจ้งเตือนไป LINE
+foretrade_install.bat                        ติดตั้ง native Windows อัตโนมัติ
+foretrade_docker.bat                         ควบคุมบอทผ่าน Docker
+docker-compose.foretrade.yml                 บริการ Docker (dry + MomentumBreakout)
+user_data/config.docker-override.json        override api_server ตอนรันใน Docker
+user_data/strategies/momentum_breakout.py    กลยุทธ์ Momentum Breakout (pluggable)
+user_data/config.dry.json                    config โหมดจำลอง + pairlist คัดคู่ + webhook/api
+user_data/config.live.json.example           ตัวอย่าง config โหมดจริง (ใส่คีย์เอง)
+foretrade_scripts/*.ps1                       สคริปต์ backtest / run_dry / run_live
+foretrade_ai/                                 AI Analyst (provider: claude/openai/gemini)
+foretrade_line/                               relay แจ้งเตือนไป LINE
 ```
 
 ## Git (fork ของคุณเอง)

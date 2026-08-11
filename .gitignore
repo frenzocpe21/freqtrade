@@ -122,6 +122,7 @@ docker-compose-*.yml
 !user_data/strategies/
 !user_data/strategies/**
 !user_data/config.dry.json
+!user_data/config.docker-override.json
 !user_data/config.live.json.example
 
 # ForeTrade — ห้าม track (มีความลับ/สร้างตอนรัน)

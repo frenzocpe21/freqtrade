@@ -1,0 +1,12 @@
+{
+    "$schema": "https://schema.freqtrade.io/schema.json",
+
+    // override เฉพาะตอนรันใน Docker:
+    // ให้ API server ฟัง 0.0.0.0 ภายในคอนเทนเนอร์ (host map มาที่ 127.0.0.1:8080 เท่านั้น จึงปลอดภัย)
+    // ใช้คู่กับ config.dry.json (freqtrade merge หลาย --config)
+    "api_server": {
+        "enabled": true,
+        "listen_ip_address": "0.0.0.0",
+        "listen_port": 8080
+    }
+}

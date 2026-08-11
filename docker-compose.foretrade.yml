@@ -1,0 +1,27 @@
+# ForeTrade — รันบอทผ่าน Docker (สะอาดสุด ไม่ต้องติดตั้ง Python/TA-Lib บนเครื่อง)
+#
+# ต้องมี Docker Desktop (Windows/Mac) หรือ Docker Engine (Linux/WSL)
+#
+# ใช้ผ่าน foretrade_docker.bat หรือสั่งตรง:
+#   docker compose -f docker-compose.foretrade.yml up -d       # dry-run เบื้องหลัง
+#   docker compose -f docker-compose.foretrade.yml logs -f     # ดู log
+#   docker compose -f docker-compose.foretrade.yml down        # หยุด
+#
+# FreqUI: http://127.0.0.1:8080  (login ตาม config.dry.json)
+---
+services:
+  foretrade:
+    image: freqtradeorg/freqtrade:stable
+    restart: unless-stopped
+    container_name: foretrade
+    volumes:
+      - "./user_data:/freqtrade/user_data"
+    ports:
+      - "127.0.0.1:8080:8080"
+    command: >
+      trade
+      --logfile /freqtrade/user_data/logs/freqtrade.log
+      --db-url sqlite:////freqtrade/user_data/tradesv3.dryrun.sqlite
+      --config /freqtrade/user_data/config.dry.json
+      --config /freqtrade/user_data/config.docker-override.json
+      --strategy MomentumBreakout
