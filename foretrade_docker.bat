@@ -3,8 +3,8 @@ REM ============================================================
 REM  ForeTrade - control the bot via Docker
 REM  Requires Docker Desktop / Docker Engine to be running.
 REM
-REM  Double-click this file to get a menu, or run from cmd:
-REM    foretrade_docker.bat up | logs | down | data | backtest | ui
+REM  Double-click for a looping menu, or run from cmd:
+REM    foretrade_docker.bat up | logs | down | data | backtest | ui | test
 REM ============================================================
 setlocal enabledelayedexpansion
 cd /d "%~dp0"
@@ -26,79 +26,85 @@ if errorlevel 1 (
   exit /b 1
 )
 
-set "CMD=%~1"
-
-REM --- No argument (double-click) -> show menu ---
-if "%CMD%"=="" (
-  echo.
-  echo ============= ForeTrade Docker =============
-  echo   1^) ui        Install FreqUI in container ^(first time^)
-  echo   2^) data      Download 90 days of history
-  echo   3^) backtest  Backtest the strategy
-  echo   4^) up        Run dry-run + open FreqUI
-  echo   5^) logs      Follow live logs
-  echo   6^) down      Stop the bot
-  echo ===========================================
-  set /p "SEL=Type 1-6 and press Enter: "
-  if "!SEL!"=="1" set "CMD=ui"
-  if "!SEL!"=="2" set "CMD=data"
-  if "!SEL!"=="3" set "CMD=backtest"
-  if "!SEL!"=="4" set "CMD=up"
-  if "!SEL!"=="5" set "CMD=logs"
-  if "!SEL!"=="6" set "CMD=down"
+REM --- If an argument was passed, run it once and exit ---
+if not "%~1"=="" (
+  call :dispatch "%~1"
+  goto :eof
 )
 
-if /i "%CMD%"=="up"       goto :up
-if /i "%CMD%"=="logs"     goto :logs
-if /i "%CMD%"=="down"     goto :down
-if /i "%CMD%"=="data"     goto :data
-if /i "%CMD%"=="backtest" goto :backtest
-if /i "%CMD%"=="ui"       goto :ui
+REM --- No argument (double-click): loop the menu ---
+:menu
+echo.
+echo ============= ForeTrade Docker =============
+echo   1^) ui        Install FreqUI in container ^(first time^)
+echo   2^) data      Download 90 days of history
+echo   3^) backtest  Backtest the strategy
+echo   4^) up        Run dry-run in background + FreqUI
+echo   5^) logs      Follow live logs ^(Ctrl+C to return^)
+echo   6^) down      Stop the bot
+echo   7^) test      Run once in foreground to SHOW ERRORS
+echo   0^) exit
+echo ===========================================
+set "SEL="
+set /p "SEL=Type 0-7 and press Enter: "
+if "%SEL%"=="0" goto :eof
+if "%SEL%"=="1" ( call :dispatch ui       & goto :menu )
+if "%SEL%"=="2" ( call :dispatch data     & goto :menu )
+if "%SEL%"=="3" ( call :dispatch backtest & goto :menu )
+if "%SEL%"=="4" ( call :dispatch up       & goto :menu )
+if "%SEL%"=="5" ( call :dispatch logs     & goto :menu )
+if "%SEL%"=="6" ( call :dispatch down     & goto :menu )
+if "%SEL%"=="7" ( call :dispatch test     & goto :menu )
+echo Invalid choice: %SEL%
+goto :menu
 
-echo.
-echo Unknown command "%CMD%" - choose: up ^| logs ^| down ^| data ^| backtest ^| ui
-echo.
-pause
+REM ============================================================
+:dispatch
+set "CMD=%~1"
+if /i "%CMD%"=="up"       goto :do_up
+if /i "%CMD%"=="logs"     goto :do_logs
+if /i "%CMD%"=="down"     goto :do_down
+if /i "%CMD%"=="data"     goto :do_data
+if /i "%CMD%"=="backtest" goto :do_backtest
+if /i "%CMD%"=="ui"       goto :do_ui
+if /i "%CMD%"=="test"     goto :do_test
+echo Unknown command "%CMD%" - choose: up^|logs^|down^|data^|backtest^|ui^|test
 exit /b 1
 
-:up
+:do_up
 echo -^> Starting ForeTrade (dry-run) in background...
 %COMPOSE% up -d
 echo.
 echo    FreqUI: http://127.0.0.1:8080  (login per config.dry.json)
-echo    Logs:   foretrade_docker.bat logs
+echo    If it keeps restarting, use option 7 (test) to see the error.
 echo.
-pause
-goto :eof
+exit /b 0
 
-:logs
-echo -^> Following logs (Ctrl+C to exit)
+:do_logs
+echo -^> Following logs (Ctrl+C to return to menu)
 %COMPOSE% logs -f
-goto :eof
+exit /b 0
 
-:down
+:do_down
 %COMPOSE% down
-echo.
-pause
-goto :eof
+exit /b 0
 
-:ui
+:do_ui
 echo -^> Installing FreqUI in container...
 %RUN% install-ui
-echo.
-pause
-goto :eof
+exit /b 0
 
-:data
+:do_data
 echo -^> Downloading 90 days of data (5m)...
 %RUN% download-data %CFG% --days 90 --timeframes 5m
-echo.
-pause
-goto :eof
+exit /b 0
 
-:backtest
+:do_backtest
 echo -^> Backtesting MomentumBreakout (90 days)...
 %RUN% backtesting %CFG% %STRAT% --timerange=-90 --timeframe 5m
-echo.
-pause
-goto :eof
+exit /b 0
+
+:do_test
+echo -^> Foreground run (no restart) - watch for errors, Ctrl+C to stop
+%RUN% trade %CFG% --config /freqtrade/user_data/config.docker-override.json %STRAT%
+exit /b 0
