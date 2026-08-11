@@ -84,27 +84,8 @@
         { "method": "VolumePairList", "number_assets": 15, "sort_key": "quoteVolume" }
     ],
 
-    // กันขาดทุนหนัก: หยุดชั่วคราวเมื่อ SL ติดกันหลายไม้ / drawdown เกิน + cooldown ต่อคู่
-    "protections": [
-        {
-            "method": "StoplossGuard",
-            "lookback_period_candles": 24,
-            "trade_limit": 4,
-            "stop_duration_candles": 12,
-            "only_per_pair": false
-        },
-        {
-            "method": "MaxDrawdown",
-            "lookback_period_candles": 288,
-            "trade_limit": 10,
-            "stop_duration_candles": 48,
-            "max_allowed_drawdown": 0.1
-        },
-        {
-            "method": "CooldownPeriod",
-            "stop_duration_candles": 2
-        }
-    ],
+    // หมายเหตุ: protections ย้ายไปกำหนดในกลยุทธ์ (MomentumBreakout.protections) แล้ว
+    // เพราะ Freqtrade เลิกรองรับการตั้ง protections ใน config
 
     "telegram": {
         "enabled": false,

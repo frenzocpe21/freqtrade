@@ -74,6 +74,25 @@ class MomentumBreakout(IStrategy):
 
     order_time_in_force = {"entry": "GTC", "exit": "GTC"}
 
+    # --- Protections: กันขาดทุนหนัก (ต้องกำหนดในกลยุทธ์ — config key 'protections' ถูก deprecated) ---
+    protections = [
+        {
+            "method": "StoplossGuard",
+            "lookback_period_candles": 24,
+            "trade_limit": 4,
+            "stop_duration_candles": 12,
+            "only_per_pair": False,
+        },
+        {
+            "method": "MaxDrawdown",
+            "lookback_period_candles": 288,
+            "trade_limit": 10,
+            "stop_duration_candles": 48,
+            "max_allowed_drawdown": 0.1,
+        },
+        {"method": "CooldownPeriod", "stop_duration_candles": 2},
+    ]
+
     # ---------------- Hyperopt parameters ----------------
     # ความยาวกรอบ breakout (Donchian)
     breakout_window = IntParameter(15, 60, default=25, space="buy", optimize=True, load=True)
