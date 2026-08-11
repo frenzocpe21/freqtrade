@@ -54,4 +54,6 @@ services:
     entrypoint: ["/bin/sh", "-c"]
     # ติดตั้ง SDK ของ AI (ถ้ามีคีย์จะได้ใช้ปุ่มวิเคราะห์) แล้วรันเซิร์ฟเวอร์
     # ถ้า pip ล้มเหลว ก็ยังรันแดชบอร์ดพื้นฐานได้ (ปุ่ม AI จะขึ้น error)
-    command: "pip install -q anthropic openai google-genai 2>/dev/null; python -m foretrade_web.server"
+    # ต้องเป็น list สมาชิกเดียว มิฉะนั้น compose จะตัดคำแล้ว sh -c รับแค่คำแรก
+    command:
+      - "pip install -q anthropic openai google-genai || true; python -m foretrade_web.server"
