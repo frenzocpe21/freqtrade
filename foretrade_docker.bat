@@ -47,10 +47,11 @@ echo   7^) test      Run once in foreground to SHOW ERRORS
 echo   8^) list      List available strategies
 echo   9^) import    Download a strategy .py from a URL
 echo  10^) compare   Backtest several strategies side by side
+echo  11^) web       Start Thai dashboard (http://127.0.0.1:8099)
 echo   0^) exit
 echo ===========================================
 set "SEL="
-set /p "SEL=Type 0-10 and press Enter: "
+set /p "SEL=Type 0-11 and press Enter: "
 if "%SEL%"=="0" goto :eof
 if "%SEL%"=="1"  ( call :dispatch ui       & goto :menu )
 if "%SEL%"=="2"  ( call :dispatch data     & goto :menu )
@@ -62,6 +63,7 @@ if "%SEL%"=="7"  ( call :dispatch test     & goto :menu )
 if "%SEL%"=="8"  ( call :dispatch list     & goto :menu )
 if "%SEL%"=="9"  ( call :dispatch import   & goto :menu )
 if "%SEL%"=="10" ( call :dispatch compare  & goto :menu )
+if "%SEL%"=="11" ( call :dispatch web      & goto :menu )
 echo Invalid choice: %SEL%
 goto :menu
 
@@ -78,7 +80,8 @@ if /i "%CMD%"=="test"     goto :do_test
 if /i "%CMD%"=="list"     goto :do_list
 if /i "%CMD%"=="import"   goto :do_import
 if /i "%CMD%"=="compare"  goto :do_compare
-echo Unknown command "%CMD%" - choose: up^|logs^|down^|data^|backtest^|ui^|test^|list^|import^|compare
+if /i "%CMD%"=="web"      goto :do_web
+echo Unknown command "%CMD%" - choose: up^|logs^|down^|data^|backtest^|ui^|test^|list^|import^|compare^|web
 exit /b 1
 
 :do_up
@@ -150,4 +153,17 @@ set "NAMES="
 set /p "NAMES=Strategies: "
 if "%NAMES%"=="" ( echo Cancelled. & exit /b 1 )
 %RUN% backtesting %CFG% --strategy-list %NAMES% --timerange=-90 --timeframe 5m
+exit /b 0
+
+:do_web
+echo -^> Starting Thai dashboard container...
+echo    (installs AI SDKs on first run - may take ~30s)
+%COMPOSE% up -d foretrade-web
+echo.
+echo    Dashboard: http://127.0.0.1:8099
+echo    For AI buttons, put your keys in a .env file next to this script, e.g:
+echo      AI_PROVIDER=claude
+echo      ANTHROPIC_API_KEY=sk-ant-...
+echo    then run 'web' again.
+start "" http://127.0.0.1:8099
 exit /b 0

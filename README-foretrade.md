@@ -125,13 +125,23 @@ python -m foretrade_ai.cli analyze-pair BTC/USDT --lang th   # ไทย (ค่
 
 หน้าเว็บของเราเอง (แยกจาก FreqUI) แสดงสถานะ/ออเดอร์/PnL เป็นภาษาไทย + มีปุ่มเรียก AI วิเคราะห์
 
-รันบน host (ต่อไปที่ API ของบอทที่ `127.0.0.1:8080` — ใช้ได้ทั้งบอทใน Docker หรือ native):
+**ถ้าใช้ Docker (แนะนำ — ไม่ต้องลง Python):**
+```
+foretrade_docker.bat  ->  11) web
+```
+เปิด **http://127.0.0.1:8099** อัตโนมัติ
+อยากใช้ปุ่ม AI: สร้างไฟล์ `.env` ข้างๆ สคริปต์ ใส่:
+```
+AI_PROVIDER=claude
+ANTHROPIC_API_KEY=sk-ant-...
+```
+แล้วกด `11) web` อีกครั้ง (คอนเทนเนอร์จะติดตั้ง SDK ให้เอง)
 
+**ถ้าติดตั้งแบบ native:**
 ```bat
 foretrade_web.bat
 ```
-เปิด **http://127.0.0.1:8099** — ต้องมี Python + `fastapi`/`uvicorn` + SDK ของ AI บน host
-(ง่ายสุดคือรัน `foretrade_install.bat` ก่อน) และตั้งคีย์ AI ถ้าจะใช้ปุ่มวิเคราะห์
+(รันบน host ต่อไปที่ `127.0.0.1:8080` — ต้องมี Python + fastapi/uvicorn + SDK ของ AI)
 
 ## 4.6) นำเข้ากลยุทธ์จากแหล่งรวม + เทียบผล (backtest หลายกลยุทธ์)
 

@@ -22,8 +22,15 @@ if exist ".venv\Scripts\python.exe" (
   )
   if not defined PYCMD ( where python >nul 2>&1 && set "PYCMD=python" )
 )
+REM --- Validate the interpreter actually works (Windows Store 'python' is a fake stub) ---
+if defined PYCMD (
+  %PYCMD% -c "import sys" >nul 2>&1 || set "PYCMD="
+)
 if not defined PYCMD (
-  echo [ERROR] Python not found. Run foretrade_install.bat first, or install Python 3.11-3.13.
+  echo [ERROR] No working Python found on this machine.
+  echo         You are likely running Docker-only. Use the Docker dashboard instead:
+  echo            foretrade_docker.bat   ^-^>  option 11 ^(web^)
+  echo         Or install Python 3.11-3.13 and run foretrade_install.bat.
   pause
   exit /b 1
 )

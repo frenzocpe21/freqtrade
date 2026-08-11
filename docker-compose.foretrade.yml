@@ -25,3 +25,33 @@ services:
       --config /freqtrade/user_data/config.dry.json
       --config /freqtrade/user_data/config.docker-override.json
       --strategy MomentumBreakout
+
+  # แดชบอร์ดภาษาไทยของเราเอง (คุยกับบริการ foretrade ผ่าน REST API)
+  # เปิดที่ http://127.0.0.1:8099
+  foretrade-web:
+    image: freqtradeorg/freqtrade:stable
+    restart: unless-stopped
+    container_name: foretrade-web
+    depends_on:
+      - foretrade
+    volumes:
+      - ".:/app:ro"
+    working_dir: /app
+    ports:
+      - "127.0.0.1:8099:8099"
+    environment:
+      FREQTRADE_API_URL: "http://foretrade:8080"
+      FREQTRADE_USERNAME: "foretrade"
+      FREQTRADE_PASSWORD: "CHANGE_ME_password"
+      WEB_HOST: "0.0.0.0"
+      WEB_PORT: "8099"
+      # ส่งคีย์ AI ผ่าน .env (ถ้าจะใช้ปุ่มวิเคราะห์) - ไม่ตั้งก็รันแดชบอร์ดเฉยๆ ได้
+      AI_PROVIDER: "${AI_PROVIDER:-}"
+      AI_LANG: "${AI_LANG:-th}"
+      ANTHROPIC_API_KEY: "${ANTHROPIC_API_KEY:-}"
+      OPENAI_API_KEY: "${OPENAI_API_KEY:-}"
+      GEMINI_API_KEY: "${GEMINI_API_KEY:-}"
+    entrypoint: ["/bin/sh", "-c"]
+    # ติดตั้ง SDK ของ AI (ถ้ามีคีย์จะได้ใช้ปุ่มวิเคราะห์) แล้วรันเซิร์ฟเวอร์
+    # ถ้า pip ล้มเหลว ก็ยังรันแดชบอร์ดพื้นฐานได้ (ปุ่ม AI จะขึ้น error)
+    command: "pip install -q anthropic openai google-genai 2>/dev/null; python -m foretrade_web.server"
